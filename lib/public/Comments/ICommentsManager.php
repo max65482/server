@@ -301,6 +301,55 @@ interface ICommentsManager {
 	public function delete($id);
 
 	/**
+	 * Get comment related with user reaction
+	 *
+	 * Throws PreConditionNotMetException when the system haven't the minimum requirements to
+	 * use reactions
+	 *
+	 * @param integer $parentId
+	 * @param string $actorType
+	 * @param string $actorId
+	 * @param string $reaction
+	 * @return IComment
+	 * @throws NotFoundException
+	 * @throws PreConditionNotMetException
+	 * @since 24.0.0
+	 */
+	public function getReactionComment(int $parentId, string $actorType, string $actorId, string $reaction): IComment;
+
+	/**
+	 * Retrieve all reactions with specific reaction of a message
+	 *
+	 * @param integer $parentId
+	 * @param string $reaction
+	 * @return IComment[]
+	 * @since 24.0.0
+	 */
+	public function retrieveAllReactionsWithSpecificReaction(int $parentId, string $reaction): ?array;
+
+	/**
+	 * Support reactions
+	 *
+	 * @return boolean
+	 * @since 24.0.0
+	 */
+	public function supportReactions(): bool;
+
+	/**
+	 * Retrieve all reactions of a message
+	 *
+	 * Throws PreConditionNotMetException when the system haven't the minimum requirements to
+	 * use reactions
+	 *
+	 * @param integer $parentId
+	 * @param string $reaction
+	 * @throws PreConditionNotMetException
+	 * @return IComment[]
+	 * @since 24.0.0
+	 */
+	public function retrieveAllReactions(int $parentId): array;
+
+	/**
 	 * saves the comment permanently
 	 *
 	 * if the supplied comment has an empty ID, a new entry comment will be
