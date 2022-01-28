@@ -29,6 +29,7 @@
 namespace OCP\Comments;
 
 use OCP\IUser;
+use OCP\PreConditionNotMetException;
 
 /**
  * Interface ICommentsManager
