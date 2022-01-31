@@ -66,16 +66,16 @@ class FakeManager implements ICommentsManager {
 		return new Comment();
 	}
 
-	public function retrieveAllReactionsWithSpecificReaction(int $parentId, string $reaction): ?array {
+	public function retrieveAllReactions(int $parentId): array {
+		return [];
+	}
+
+	public function retrieveAllReactionsWithSpecificReaction(int $parentId, string $reaction): array {
 		return [];
 	}
 
 	public function supportReactions(): bool {
 		return false;
-	}
-
-	public function retrieveAllReactions(int $parentId): array {
-		return [];
 	}
 
 	public function save(IComment $comment) {

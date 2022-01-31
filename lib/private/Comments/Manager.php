@@ -997,6 +997,35 @@ class Manager implements ICommentsManager {
 	}
 
 	/**
+	 * Retrieve all reactions of a message
+	 *
+	 * Throws PreConditionNotMetException when the system haven't the minimum requirements to
+	 * use reactions
+	 *
+	 * @param integer $parentId
+	 * @param string $reaction
+	 * @throws PreConditionNotMetException
+	 * @return IComment[]
+	 * @since 24.0.0
+	 */
+	public function retrieveAllReactions(int $parentId): array {
+		$this->throwIfNotSupportReactions();
+		$qb = $this->dbConn->getQueryBuilder();
+		$result = $qb
+			->select('message_id')
+			->from('reactions')
+			->where($qb->expr()->eq('parent_id', $qb->createNamedParameter($parentId)))
+			->executeQuery();
+
+		$commentIds = [];
+		while ($data = $result->fetch()) {
+			$commentIds[] = $data['message_id'];
+		}
+
+		return $this->getCommentsById($commentIds);
+	}
+
+	/**
 	 * Retrieve all reactions with specific reaction of a message
 	 *
 	 * @param integer $parentId
@@ -1004,7 +1033,7 @@ class Manager implements ICommentsManager {
 	 * @return IComment[]
 	 * @since 24.0.0
 	 */
-	public function retrieveAllReactionsWithSpecificReaction(int $parentId, string $reaction): ?array {
+	public function retrieveAllReactionsWithSpecificReaction(int $parentId, string $reaction): array {
 		$this->throwIfNotSupportReactions();
 		$qb = $this->dbConn->getQueryBuilder();
 		$result = $qb
@@ -1044,35 +1073,6 @@ class Manager implements ICommentsManager {
 		if (!$this->supportReactions()) {
 			throw new PreConditionNotMetException('The database does not support reactions');
 		}
-	}
-
-	/**
-	 * Retrieve all reactions of a message
-	 *
-	 * Throws PreConditionNotMetException when the system haven't the minimum requirements to
-	 * use reactions
-	 *
-	 * @param integer $parentId
-	 * @param string $reaction
-	 * @throws PreConditionNotMetException
-	 * @return IComment[]
-	 * @since 24.0.0
-	 */
-	public function retrieveAllReactions(int $parentId): array {
-		$this->throwIfNotSupportReactions();
-		$qb = $this->dbConn->getQueryBuilder();
-		$result = $qb
-			->select('message_id')
-			->from('reactions')
-			->where($qb->expr()->eq('parent_id', $qb->createNamedParameter($parentId)))
-			->executeQuery();
-
-		$commentIds = [];
-		while ($data = $result->fetch()) {
-			$commentIds[] = $data['message_id'];
-		}
-
-		return $this->getCommentsById($commentIds);
 	}
 
 	/**

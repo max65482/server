@@ -319,24 +319,6 @@ interface ICommentsManager {
 	public function getReactionComment(int $parentId, string $actorType, string $actorId, string $reaction): IComment;
 
 	/**
-	 * Retrieve all reactions with specific reaction of a message
-	 *
-	 * @param integer $parentId
-	 * @param string $reaction
-	 * @return IComment[]
-	 * @since 24.0.0
-	 */
-	public function retrieveAllReactionsWithSpecificReaction(int $parentId, string $reaction): ?array;
-
-	/**
-	 * Support reactions
-	 *
-	 * @return boolean
-	 * @since 24.0.0
-	 */
-	public function supportReactions(): bool;
-
-	/**
 	 * Retrieve all reactions of a message
 	 *
 	 * Throws PreConditionNotMetException when the system haven't the minimum requirements to
@@ -349,6 +331,24 @@ interface ICommentsManager {
 	 * @since 24.0.0
 	 */
 	public function retrieveAllReactions(int $parentId): array;
+
+	/**
+	 * Retrieve all reactions with specific reaction of a message
+	 *
+	 * @param integer $parentId
+	 * @param string $reaction
+	 * @return IComment[]
+	 * @since 24.0.0
+	 */
+	public function retrieveAllReactionsWithSpecificReaction(int $parentId, string $reaction): array;
+
+	/**
+	 * Support reactions
+	 *
+	 * @return boolean
+	 * @since 24.0.0
+	 */
+	public function supportReactions(): bool;
 
 	/**
 	 * saves the comment permanently
