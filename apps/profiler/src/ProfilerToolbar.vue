@@ -135,6 +135,7 @@ export default {
 	height: 36px;
 	font-size: 12px;
 	border-bottom: 1px solid var(--color-border);
+	z-index: 99999;
 
 	& > .toolbar-block {
 		height: 100%;

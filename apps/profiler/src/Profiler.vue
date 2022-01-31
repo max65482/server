@@ -68,6 +68,10 @@ export default {
 			recentProfiles,
 			categoryInfo: [
 				{
+					id: 'router',
+					name: 'Router',
+				},
+				{
 					id: 'http',
 					name: 'Request and Response',
 				},
@@ -87,6 +91,7 @@ export default {
 		selectedProfile(newToken) {
 			this.$store.dispatch('loadProfile', { token: newToken.token })
 			this.$router.push({ name: this.selectedCategory, params: { token: newToken.token } })
+			this.token = newToken.token
 		},
 		selectedCategory(newCategory) {
 			console.debug(newCategory)

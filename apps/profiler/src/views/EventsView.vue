@@ -17,16 +17,16 @@
 					</tr>
 				</thead>
 				<tbody>
-					<tr v-for="(event, index) in events" :v-key="event.id">
+					<tr v-for="(event, index) in events" :key="event.id">
 						<td>
 							{{ index }}
 						</td>
 						<td>
-							{{ event.duration * 1000 }} ms
+							{{ (event.duration * 1000).toFixed(1) }} ms
 							(Start: {{ event.start * 1000 }}, End: {{ event.stop * 1000 }})
 						</td>
 						<td>
-							{{ event.description * 1000 }}
+							{{ event.description }}
 						</td>
 					</tr>
 				</tbody>
