@@ -1222,7 +1222,7 @@ $CONFIG = [
  * delayed during the "working" hours and only run in the 4 hours after the given time.
  * This is e.g. used for activity expiration, suspicious login training and update checks.
  *
- * A value of 1 e.g. will only run this background jobs between 01:00am UTC and 05:00am UTC.
+ * A value of 1 e.g. will only run these background jobs between 01:00am UTC and 05:00am UTC.
  *
  * Defaults to ``100`` which disables the feature
  */
