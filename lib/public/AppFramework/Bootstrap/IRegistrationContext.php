@@ -264,4 +264,15 @@ interface IRegistrationContext {
 	 * @since 23.0.0
 	 */
 	public function registerProfileLinkAction(string $actionClass): void;
+
+	/**
+	 * Register an implementation of \OCP\UserMigration\IMigrator that
+	 * will handle the implementation of a migrator
+	 *
+	 * @param string $migratorClass
+	 * @psalm-param class-string<\OCP\UserMigration\IMigrator> $migratorClass
+	 * @return void
+	 * @since 24.0.0
+	 */
+	public function registerUserMigrator(string $migratorClass): void;
 }

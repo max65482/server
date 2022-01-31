@@ -48,6 +48,7 @@ use OCP\Notification\INotifier;
 use OCP\Profile\ILinkAction;
 use OCP\Search\IProvider;
 use OCP\Support\CrashReport\IReporter;
+use OCP\UserMigration\IMigrator as IUserMigrator;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
@@ -64,6 +65,9 @@ class RegistrationContext {
 
 	/** @var ServiceRegistration<ILinkAction>[] */
 	private $profileLinkActions = [];
+
+	/** @var ServiceRegistration<IUserMigrator>[] */
+	private $userMigrators = [];
 
 	/** @var ServiceFactoryRegistration[] */
 	private $services = [];
@@ -259,6 +263,13 @@ class RegistrationContext {
 					$actionClass
 				);
 			}
+
+			public function registerUserMigrator(string $migratorClass): void {
+				$this->context->registerUserMigrator(
+					$this->appId,
+					$migratorClass
+				);
+			}
 		};
 	}
 
@@ -347,6 +358,13 @@ class RegistrationContext {
 	 */
 	public function registerProfileLinkAction(string $appId, string $actionClass): void {
 		$this->profileLinkActions[] = new ServiceRegistration($appId, $actionClass);
+	}
+
+	/**
+	 * @psalm-param class-string<IUserMigrator> $migratorClass
+	 */
+	public function registerUserMigrator(string $appId, string $migratorClass): void {
+		$this->userMigrators[] = new ServiceRegistration($appId, $migratorClass);
 	}
 
 	/**
@@ -599,5 +617,12 @@ class RegistrationContext {
 	 */
 	public function getProfileLinkActions(): array {
 		return $this->profileLinkActions;
+	}
+
+	/**
+	 * @return ServiceRegistration<IUserMigrator>[]
+	 */
+	public function getUserMigrators(): array {
+		return $this->userMigrators;
 	}
 }
