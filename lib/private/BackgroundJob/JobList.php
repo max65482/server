@@ -184,6 +184,7 @@ class JobList implements IJobList {
 	/**
 	 * get the next job in the list
 	 *
+	 * @param bool $onlyTimeSensitive
 	 * @return IJob|null
 	 */
 	public function getNext(bool $onlyTimeSensitive = true): ?IJob {
@@ -340,7 +341,7 @@ class JobList implements IJobList {
 
 		if ($job instanceof \OCP\BackgroundJob\TimedJob
 			&& !$job->isTimeSensitive()) {
-			$query->set('time_sensitive', IJob::TIME_INSENSITIVE);
+			$query->set('time_sensitive', $query->createNamedParameter(IJob::TIME_INSENSITIVE));
 		}
 
 		$query->execute();

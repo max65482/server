@@ -89,7 +89,7 @@ interface IJobList {
 	 * @return \OCP\BackgroundJob\IJob|null
 	 * @since 7.0.0
 	 */
-	public function getNext(bool $onlyTimeSensitive = false): void;
+	public function getNext(bool $onlyTimeSensitive = false): ?IJob;
 
 	/**
 	 * @param int $id
