@@ -71,7 +71,6 @@ use OCP\IURLGenerator;
 use OCP\IUserManager;
 use OCP\Lock\ILockingProvider;
 use OCP\Lock\LockedException;
-use OCP\Share;
 use OCP\Share\Exceptions\GenericShareException;
 use OCP\Share\Exceptions\ShareNotFound;
 use OCP\Share\IManager;
@@ -523,7 +522,7 @@ class ShareAPIController extends OCSController {
 			$share->setSharedWith($shareWith);
 			$share->setPermissions($permissions);
 		} elseif ($shareType === IShare::TYPE_LINK
-			|| $shareType === IShare::TYPE_EMAIL) {
+				  || $shareType === IShare::TYPE_EMAIL) {
 
 			// Can we even share links?
 			if (!$this->shareManager->shareApiAllowLinks()) {
@@ -542,9 +541,9 @@ class ShareAPIController extends OCSController {
 				}
 
 				$permissions = Constants::PERMISSION_READ |
-					Constants::PERMISSION_CREATE |
-					Constants::PERMISSION_UPDATE |
-					Constants::PERMISSION_DELETE;
+							   Constants::PERMISSION_CREATE |
+							   Constants::PERMISSION_UPDATE |
+							   Constants::PERMISSION_DELETE;
 			} else {
 				$permissions = Constants::PERMISSION_READ;
 			}
@@ -1234,17 +1233,17 @@ class ShareAPIController extends OCSController {
 			$userFolder = $this->rootFolder->getUserFolder($share->getSharedBy());
 			$nodes = $userFolder->getById($share->getNodeId());
 			if (empty($nodes)) {
-				// fallback to guessing the path
-				$node = $userFolder->get($share->getTarget());
-				if ($node === null || $share->getTarget() === '') {
-					return null;
+					// fallback to guessing the path
+					$node = $userFolder->get($share->getTarget());
+					if ($node === null || $share->getTarget() === '') {
+						return null;
+					}
+				} else {
+					$node = $nodes[0];
 				}
-			} else {
-				$node = $nodes[0];
-			}
 
-			try {
-				$formattedShare = $this->formatShare($share, $node);
+				try {
+					$formattedShare = $this->formatShare($share, $node);
 				$formattedShare['status'] = $share->getStatus();
 				$formattedShare['path'] = $share->getNode()->getName();
 				$formattedShare['permissions'] = 0;
@@ -1735,7 +1734,7 @@ class ShareAPIController extends OCSController {
 		}
 
 		if ($share->getShareType() === IShare::TYPE_CIRCLE && \OC::$server->getAppManager()->isEnabledForUser('circles')
-			&& class_exists('\OCA\Circles\Api\v1\Circles')) {
+			&& class_exists('\OCA\Circles\CirclesManager')) {
 			$hasCircleId = (substr($share->getSharedWith(), -1) === ']');
 			$shareWithStart = ($hasCircleId ? strrpos($share->getSharedWith(), '[') + 1 : 0);
 			$shareWithLength = ($hasCircleId ? -1 : strpos($share->getSharedWith(), ' '));
@@ -1745,12 +1744,22 @@ class ShareAPIController extends OCSController {
 				$sharedWith = substr($share->getSharedWith(), $shareWithStart, $shareWithLength);
 			}
 			try {
-				$member = \OCA\Circles\Api\v1\Circles::getMember($sharedWith, $userId, 1);
-				if ($member->getLevel() >= 4) {
-					return true;
+				// TODO: switch to ICirclesManager once we have it available within core
+				/** @var \OCA\Circles\CirclesManager $circleManager */
+				$circleManager = $this->serverContainer->get('\OCA\Circles\CirclesManager');
+				$circleManager->startSuperSession();
+
+				// We get the federatedUser linked to the userId (local user, so type=1)
+				// We browse the federatedUser's membership to confirm it exists and level is moderator
+				$federatedUser = $circleManager->getFederatedUser($userId, 1);
+				foreach($federatedUser->getMemberships() as $membership) {
+					if ($membership->getCircleId() !== $sharedWith) {
+						continue;
+					}
+
+					return ($membership->getLevel() >= 4);
 				}
-				return false;
-			} catch (QueryException $e) {
+			} catch (\Exception $e) {
 				return false;
 			}
 		}
