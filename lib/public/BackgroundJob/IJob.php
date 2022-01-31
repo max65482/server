@@ -34,6 +34,9 @@ use OCP\ILogger;
  * @since 7.0.0
  */
 interface IJob {
+	public const TIME_INSENSITIVE = 0;
+	public const TIME_SENSITIVE = 1;
+
 	/**
 	 * Run the background job with the registered argument
 	 *

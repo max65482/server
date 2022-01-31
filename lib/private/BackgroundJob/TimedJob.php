@@ -25,6 +25,7 @@
  */
 namespace OC\BackgroundJob;
 
+use OCP\BackgroundJob\IJob;
 use OCP\BackgroundJob\IJobList;
 use OCP\ILogger;
 
@@ -37,6 +38,7 @@ use OCP\ILogger;
  */
 abstract class TimedJob extends Job {
 	protected $interval = 0;
+	protected $timeSensitivity = IJob::TIME_SENSITIVE;
 
 	/**
 	 * set the interval for the job
@@ -45,6 +47,19 @@ abstract class TimedJob extends Job {
 	 */
 	public function setInterval($interval) {
 		$this->interval = $interval;
+	}
+
+	public function isTimeSensitive(): bool {
+		return $this->timeSensitivity === IJob::TIME_SENSITIVE;
+	}
+
+	public function setTimeSensitivity($sensitivity): void {
+		if ($sensitivity !== IJob::TIME_SENSITIVE &&
+			$sensitivity !== IJob::TIME_INSENSITIVE) {
+			throw new \InvalidArgumentException('Invalid sensitivity');
+		}
+
+		$this->timeSensitivity = $sensitivity;
 	}
 
 	/**
