@@ -25,7 +25,6 @@
  */
 namespace OC\BackgroundJob;
 
-use OCP\BackgroundJob\IJob;
 use OCP\BackgroundJob\IJobList;
 use OCP\ILogger;
 
