@@ -43,7 +43,7 @@ class ICSExportPlugin extends \Sabre\CalDAV\ICSExportPlugin {
 	private $logger;
 
 	/** @var string */
-	private const DEFAULT_REFRESH_INTERVAL = 'PT4H';
+	public const DEFAULT_REFRESH_INTERVAL = 'PT4H';
 
 	/**
 	 * ICSExportPlugin constructor.
