@@ -27,6 +27,7 @@ declare(strict_types=1);
 namespace OCA\DAV\UserMigration;
 
 use Exception;
+use function Safe\fopen;
 use OC\Files\Filesystem;
 use OC\Files\View;
 use OCA\DAV\AppInfo\Application;
@@ -44,6 +45,12 @@ use OCP\IL10N;
 use OCP\IUser;
 use Psr\Log\LoggerInterface;
 use Sabre\CalDAV\Plugin;
+use Sabre\DAV\Exception\BadRequest;
+use Sabre\VObject\Component;
+use Sabre\VObject\Property;
+use Sabre\VObject\Reader as VObjectReader;
+use Sabre\VObject\UUIDUtil;
+use Safe\Exceptions\FilesystemException;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class CalendarMigrator {
@@ -209,19 +216,82 @@ class CalendarMigrator {
 	/**
 	 * @throws Exception
 	 */
-	// TODO add import calendar functionality
+	// TODO finish import calendar functionality
 	public function import(IUser $user, string $srcDir, string $filename, OutputInterface $output): void {
 		$userId = $user->getUID();
+		$principalUri = CalendarMigrator::USERS_URI_ROOT . $userId;
 
-		$view = new View();
-
-		$output->writeln("Importing calendar of user $userId from $srcDir/$filename …");
-
-		$fileContents = $view->file_get_contents("$srcDir/$filename");
-		if ($fileContents === false) {
-			throw new Exception('Could not import calendar');
+		try {
+			$vCalendar = VObjectReader::read(
+				fopen("$srcDir/$filename", 'r')
+			);
+		} catch (FilesystemException $e) {
+			throw new FilesystemException('Invalid path');
 		}
 
-		$output->writeln("✅ Imported calendar $srcDir/$filename to account of $userId");
+		$problems = $vCalendar->validate();
+		if (empty($problems)) {
+			//  Implementation below based on https://github.com/nextcloud/cdav-library/blob/9b67034837fad9e8f764d0152211d46565bf01f2/src/models/calendarHome.js#L151
+
+			$existingCalendarUris = array_map(
+				fn (ICalendar $calendar) => $calendar->getUri(),
+				$this->calendarManager->getCalendarsForPrincipal($principalUri),
+			);
+
+			// Parse initial calendar uri from filename
+			$initialCalendarUri = $calendarUri = explode('-', $filename, 2)[0];
+
+			$acc = 1;
+			while (in_array($calendarUri, $existingCalendarUris, true)) {
+				$calendarUri = $initialCalendarUri . "-$acc";
+				++$acc;
+			}
+
+			// Create calendar
+			$calendarId = $this->calDavBackend->createCalendar($principalUri, $calendarUri, [
+				'{DAV:}displayname' => (string)$vCalendar->{'X-WR-CALNAME'},
+				'{http://apple.com/ns/ical/}calendar-color' => (string)$vCalendar->{'X-APPLE-CALENDAR-COLOR'},
+				'{http://owncloud.org/ns}calendar-enabled' => '1',
+				'components' => 'VEVENT',
+			]);
+
+			$duplicateEvents = 0;
+
+			// TODO parse result should be 3 components, ref: https://github.com/nextcloud/calendar-js/blob/72f97b58108c6fcb72111f7fe6bdd1993c8dbda1/src/parsers/icalendarParser.js#L187
+			// Add events to created calendar
+			/** @var Component $vObject */
+			foreach ($vCalendar->VEVENT as $vObject) {
+				// $eventData = $vObject->serialize();
+
+				$lines = [
+					"BEGIN:VCALENDAR\n",
+					"BEGIN:VEVENT\n",
+					...array_map(fn (Property $property) => $property->serialize(), $vObject->children()),
+					"END:VEVENT\n",
+					"END:VCALENDAR",
+				];
+				$eventData = implode('', $lines);
+
+				// TODO get calendarData
+				// ref: https://github.com/nextcloud/calendar-js/blob/72f97b58108c6fcb72111f7fe6bdd1993c8dbda1/src/components/calendarComponent.js#L104
+				// ref: https://github.com/mozilla-comm/ical.js/blob/ba8e2522ffd30ffbe65197a96a487689d6e6e9a1/lib/ical/stringify.js#L60
+				try {
+					$this->calDavBackend->createCalendarObject(
+						$calendarId,
+						UUIDUtil::getUUID() . '.ics',
+						$eventData,
+						CalDavBackend::CALENDAR_TYPE_CALENDAR,
+					);
+				} catch (BadRequest $e) {
+					++$duplicateEvents;
+				}
+			}
+
+			$vCalendar->destroy();
+
+			$output->writeln("✅ Imported calendar \"$filename\" to account of $userId" . ($duplicateEvents ? ", skipped $duplicateEvents duplicate events" : ''));
+			return;
+		}
+		throw new Exception('Could not import calendar');
 	}
 }
