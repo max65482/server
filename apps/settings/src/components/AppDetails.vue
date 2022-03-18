@@ -190,7 +190,8 @@ export default {
 			const actions = [
 				{
 					icon: 'icon-alert-outline',
-					text: 'Update to experimental version 1.0.0-rc1',
+					text: "Update to experimental version 1.0.0-rc1",
+					longtext: "Downgrading from an experimental version may be impossible. Thank you for supporting Nextcloud by reporting issues!",
 					action: this.deleteUser,
 				},
 			]
