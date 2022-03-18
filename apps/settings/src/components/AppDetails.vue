@@ -85,6 +85,13 @@
 					:value="forceEnableButtonText"
 					:disabled="installing || isLoading"
 					@click="forceEnable(app.id)">
+				<div v-click-outside="hideMenu">
+					<button v-if="true" class="icon-more"
+						@click.prevent="toggleMenu" />
+					<div :class="{ 'open': openedMenu }" class="popovermenu menu menu-center">
+						<PopoverMenu :menu="userActions" />
+					</div>
+				</div>
 			</div>
 		</div>
 
@@ -144,8 +151,9 @@
 </template>
 
 <script>
+import PopoverMenu from '@nextcloud/vue/dist/Components/PopoverMenu'
+import ClickOutside from 'vue-click-outside'
 import Multiselect from '@nextcloud/vue/dist/Components/Multiselect'
-
 import AppManagement from '../mixins/AppManagement'
 import PrefixMixin from './PrefixMixin'
 import Markdown from './Markdown'
@@ -154,8 +162,12 @@ export default {
 	name: 'AppDetails',
 
 	components: {
+		PopoverMenu,
 		Multiselect,
 		Markdown,
+	},
+	directives: {
+		ClickOutside,
 	},
 	mixins: [AppManagement, PrefixMixin],
 
@@ -169,10 +181,21 @@ export default {
 	data() {
 		return {
 			groupCheckedAppsData: false,
+			openedMenu: false,
 		}
 	},
 
 	computed: {
+		userActions() {
+			const actions = [
+				{
+					icon: 'icon-alert-outline',
+					text: 'Update to experimental version 1.0.0-rc1',
+					action: this.deleteUser,
+				},
+			]
+			return actions
+		},
 		appstoreUrl() {
 			return `https://apps.nextcloud.com/apps/${this.app.id}`
 		},
@@ -202,6 +225,15 @@ export default {
 			return this.$store.getters.getGroups
 				.filter(group => group.id !== 'disabled')
 				.sort((a, b) => a.name.localeCompare(b.name))
+		},
+	},
+	methods: {
+		/* MENU HANDLING */
+		toggleMenu() {
+			this.openedMenu = !this.openedMenu
+		},
+		hideMenu() {
+			this.openedMenu = false
 		},
 	},
 	mounted() {
